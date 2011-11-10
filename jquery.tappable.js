@@ -58,94 +58,77 @@
  *
  */
 
-;(function($) {
-  var touchSupported = ('ontouchstart' in window)
+(function($) {
+  var touchSupported = ('ontouchstart' in window);
+
+  function fireCallback(callback, $el, event, touched) {
+    if (typeof callback == 'function')
+      callback.call($el[0], event, touched);
+  }
 
   $.fn.tappable = function(options) {
-    var cancelOnMove = true,
-        onlyIf = function() { return true },
-        touchDelay = 0,
-        callback
+    var opts = {
+      cancelOnMove: true,
+      onlyIf: function() { return true },
+      touchDelay: 0,
+      callback: undefined
+    };
 
     switch(typeof options) {
       case 'function':
-        callback = options
+        opts.callback = options;
         break;
+      
       case 'object':
-        callback = options.callback
-
-        if (typeof options.cancelOnMove != 'undefined') {
-          cancelOnMove = options.cancelOnMove
-        }
-
-        if (typeof options.onlyIf != 'undefined') {
-          onlyIf = options.onlyIf
-        }
-
-        if (typeof options.touchDelay != 'undefined') {
-          touchDelay = options.touchDelay
-        }
-
+        $.extend(opts, options);
         break;
-    }
-
-    var fireCallback = function(el, event) {
-      if (typeof callback == 'function' && onlyIf(el)) {
-        callback.call(el, event)
-      }
     }
 
     if (touchSupported) {
       this.bind('touchstart', function(event) {
-        var el = this
+        var $el = $(this);
 
-        if (onlyIf(this)) {
-          $(el).addClass('touch-started')
+        if (opts.onlyIf(this)) {
+          $el.prop('tappableEvent', event);
 
           window.setTimeout(function() {
-            if ($(el).hasClass('touch-started')) {
-              $(el).addClass('touched')
+            if ($el.prop('tappableEvent')) {
+              $el.addClass('touched');
             }
-          }, touchDelay)
+          }, opts.touchDelay);
         }
-
-        return true
-      })
-
+      });
+      
       this.bind('touchend', function(event) {
-        var el = this
+        var $el = $(this);
 
-        if ($(el).hasClass('touch-started')) {
-          $(el)
-            .removeClass('touched')
-            .removeClass('touch-started')
+        if ($el.prop('tappableEvent')) {
+          event = $el.prop('tappableEvent');
+          
+          $el
+            .removeProp('tappableEvent')
+            .removeClass('touched');
 
-          fireCallback(el, event)
+          fireCallback(opts.callback, $el, event, true);
         }
+      });
 
-        return true
-      })
-
-      this.bind('click', function(event) {
-        event.preventDefault()
-      })
-
-      if (cancelOnMove) {
+      if (opts.cancelOnMove) {
         this.bind('touchmove', function() {
           $(this)
+            .removeProp('tappableEvent')
             .removeClass('touched')
-            .removeClass('touch-started')
-        })
+        });
       }
-    } else if (typeof callback == 'function') {
+    }
+    else {
       this.bind('click', function(event) {
-        if (onlyIf(this)) {
-          callback.call(this, event)
+        if (opts.onlyIf(this)) {
+          fireCallback(opts.callback, $(this), event, false);
         }
-      })
+      });
     }
 
-    return this
+    return this;
   }
 })(jQuery);
-
