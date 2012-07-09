@@ -63,7 +63,7 @@
 
   function fireCallback(callback, $el, event, touched) {
     if (typeof callback == 'function')
-      callback.call($el[0], event, touched);
+      return callback.call($el[0], event, touched);
   }
 
   $.fn.tappable = function(options) {
@@ -109,7 +109,7 @@
             .removeProp('tappableEvent')
             .removeClass('touched');
 
-          fireCallback(opts.callback, $el, event, true);
+          return fireCallback(opts.callback, $el, event, true);
         }
       });
 
@@ -124,7 +124,7 @@
     else {
       this.bind('click', function(event) {
         if (opts.onlyIf(this)) {
-          fireCallback(opts.callback, $(this), event, false);
+          return fireCallback(opts.callback, $(this), event, false);
         }
       });
     }
