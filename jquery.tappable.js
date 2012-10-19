@@ -61,12 +61,17 @@
 			return callback.call($el[0], event, touched);
 	}
 
-	$.fn.tappable = function(options) {
+	$.fn.tappable = function(selector, options) {
 		var opts = {
 			cancelOnMove: true,
 			touchDelay: 0,
 			callback: undefined
 		};
+
+		if (undefined == options) {
+			options = selector;
+			selector = null;
+		}
 
 		switch (typeof options) {
 			case 'function':
@@ -79,7 +84,7 @@
 		}
 
 		if (touchSupported) {
-			this.bind('touchstart', function(event) {
+			this.on('touchstart', selector, function(event) {
 				var $el = $(this),
 					tappable = $el.prop('tappable');
 
@@ -96,7 +101,7 @@
 				}, opts.touchDelay);
 			});
 
-			this.bind('touchend', function(event) {
+			this.on('touchend', selector, function(event) {
 				var $el = $(this),
 					tappable = $el.prop('tappable');
 
@@ -114,7 +119,7 @@
 			});
 
 			if (opts.cancelOnMove) {
-				this.bind('touchmove', function() {
+				this.on('touchmove', selector, function() {
 					$(this)
 						.removeProp('tappable')
 						.removeClass('touched')
@@ -122,7 +127,7 @@
 			}
 		}
 		else {
-			this.bind('click', function(event) {
+			this.on('click', selector, function(event) {
 				return fireCallback(opts.callback, $(this), event, false);
 			});
 		}
