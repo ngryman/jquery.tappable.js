@@ -50,11 +50,6 @@
  *                 user performs a "long tap". Best employed on elements that the
  *                 user is likely to touch while scrolling. Around 150 will work
  *                 well. Defaults to 0.
- *   
- *   onlyIf:       Function to run as soon as the user touches the element, to
- *                 determine whether to do anything. If it returns a falsy value,
- *                 the 'touched' class will not be added and the callback will
- *                 not be fired.
  *
  */
 
@@ -69,7 +64,6 @@
 	$.fn.tappable = function(options) {
 		var opts = {
 			cancelOnMove: true,
-			onlyIf: function() { return true },
 			touchDelay: 0,
 			callback: undefined
 		};
@@ -89,19 +83,17 @@
 				var $el = $(this),
 					tappable = $el.prop('tappable');
 
-				if (opts.onlyIf(this)) {
-					if (!tappable) {
-						tappable = { event: event, attached: 0 };
-						$el.prop('tappable', tappable);
-					}
-					tappable.attached++;
-
-					window.setTimeout(function() {
-						if (tappable) {
-							$el.addClass('touched');
-						}
-					}, opts.touchDelay);
+				if (!tappable) {
+					tappable = { event: event, attached: 0 };
+					$el.prop('tappable', tappable);
 				}
+				tappable.attached++;
+
+				window.setTimeout(function() {
+					if (tappable) {
+						$el.addClass('touched');
+					}
+				}, opts.touchDelay);
 			});
 
 			this.bind('touchend', function(event) {
@@ -110,9 +102,8 @@
 
 				if (tappable) {
 					event = tappable.event;
-					tappable.attached--;
 
-					if (0 == tappable.attached) {
+					if (0 == --tappable.attached) {
 						$el
 							.removeProp('tappable')
 							.removeClass('touched');
@@ -132,9 +123,7 @@
 		}
 		else {
 			this.bind('click', function(event) {
-				if (opts.onlyIf(this)) {
-					return fireCallback(opts.callback, $(this), event, false);
-				}
+				return fireCallback(opts.callback, $(this), event, false);
 			});
 		}
 
