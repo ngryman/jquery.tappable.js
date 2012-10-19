@@ -1,5 +1,5 @@
 /*
- * jquery.tappable.js version 0.2
+ * jquery.tappable.js version 0.3
  *
  * More responsive (iOS-like) touch behaviour for buttons and other 'tappable' UI
  * elements, instead of Mobile Safari's 300ms delay and ugly grey overlay:
